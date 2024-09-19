@@ -11,7 +11,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        dir('terraform') {
+                        dir('2-terraform-eks-deployment') {
                             sh "terraform init"
                             sh "terraform apply -auto-approve"
                         }
