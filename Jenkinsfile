@@ -2,18 +2,29 @@
 pipeline {
     agent any
     environment {
-        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-        AWS_DEFAULT_REGION = "eu-west-3"
+        AWS_DEFAULT_REGION    = "eu-west-1"
     }
     stages {
         stage("Create an EKS Cluster") {
             steps {
                 script {
-                    dir('terraform') {
-                        sh "terraform init"
-                        sh "terraform apply -auto-approve"
+                    try {
+                        dir('terraform') {
+                            sh "terraform init"
+                            sh "terraform apply -auto-approve"
+                        }
+                    } catch (Exception e) {
+                        error "Terraform apply failed: ${e}"
                     }
+                }
+            }
+        }
+        stage("Wait for EKS Cluster to be Ready") {
+            steps {
+                script {
+                    sh "aws eks wait cluster-active --name my-eks-cluster"
                 }
             }
         }
